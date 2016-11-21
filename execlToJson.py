@@ -10,11 +10,31 @@ import json
 import xlrd
 import math
 import types
-curfile = r'C:\Users\admin\Desktop\font\ErrorCodeID.xlsx'
+import glob
+fileTypeArray = [".xlsx",".xls"]
+curfile = r'E:\github\execlToJson\ErrorCodeID.xlsx'
 
 
-def readExecl():
-	workbook  = xlrd.open_workbook(curfile)
+
+def readAllExecl():
+	currentPath = os.getcwd()
+	#print "currentPath:" + currentPath
+	#for dir in [x for x in os.listdir(CUR_PATH) if os.path.isdir(os.path.join(CUR_PATH, x))]:
+	for dir in [x for x in os.listdir(currentPath)]:
+		localPath = os.path.join(currentPath, dir)
+		if os.path.isfile(localPath):
+			filesp = os.path.splitext(localPath)				 
+			for k in fileTypeArray:
+				if filesp[1] == k:				
+					filename = os.path.basename(localPath)
+					
+					readExecl(localPath,filename.split('.')[0])
+			
+			#print  localPath
+		#print "dir  " + dir
+def readExecl(path,name):
+
+	workbook  = xlrd.open_workbook(path)
 	# [u'sheet1', u'sheet2']
 	#print workbook.sheet_names() 
 	
@@ -30,7 +50,7 @@ def readExecl():
 		#print TransformationType(sheet.cell_value(0,0))
 		for j in range(0,sheet.ncols):
 			 value = TransformationType(sheet.cell_value(i,j))
-			 print type(value)
+			 #print type(value)
 			 if  isinstance(value , str):
 				
 				 if isJsonString(value):					
@@ -42,11 +62,14 @@ def readExecl():
 					
 		adict[TransformationType(sheet.cell_value(i,0))]= data
 	
-	print adict
+	 
 	data = json.dumps(adict)
-	f=open('ErrorCodeID.json','w') 
+	f=open(name+'.json','w') 
 	f.write(data)
 	f.close()
+	print "already create  json :  " + path
+	
+	
 def isJsonString(str):
 	try:
 		eval(str)
@@ -66,8 +89,8 @@ def TransformationType(var):
 	return str1
 	
 def main():
-	readExecl()
-
+	readAllExecl()
+	print "create  all success : " 
 	os.system("pause")
 
 if __name__ == "__main__":
