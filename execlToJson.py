@@ -63,7 +63,7 @@ def readExecl(path,name):
 		adict[TransformationType(sheet.cell_value(i,0))]= data
 	
 	 
-	data = json.dumps(adict)
+	data = json.dumps(adict,indent=1)
 	f=open(name+'.json','w') 
 	f.write(data)
 	f.close()
