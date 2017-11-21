@@ -41,41 +41,67 @@ def readExeclToLua(path,name):
 	# sheet的名称，行数，列数
 	#print sheet.name,sheet.nrows,sheet.ncols
 	
-	adict = {}
+	# adict = {}
 	
+	# for i in range(1,sheet.nrows):
+	# 	data = {}
+	# 	#print TransformationType(sheet.cell_value(0,0))
+	# 	for j in range(0,sheet.ncols):
+	# 		 value = TransformationType(sheet.cell_value(i,j))
+	# 		 # print  value 
+	# 		 key = TransformationType(sheet.cell_value(0,j)) 
+	# 		 if  isinstance(value , str):
+				
+	# 			 if isJsonString(value):
+	# 			 	# 可以转化成 json 对象的 					
+	# 				data[key] = eval(value)
+	# 			 else:
+	# 			 	# str 值
+	# 				data[key] = value
+	# 		 else:
+	# 		 	 # 非str 值
+	# 			 data[key] = value
+	# 	# 转换成 python 字典 对象			
+	# 	adict[TransformationType(sheet.cell_value(i,0))]= data
+	adict = {}
+	mlist =[]
 	for i in range(1,sheet.nrows):
 		data = {}
 		#print TransformationType(sheet.cell_value(0,0))
 		for j in range(0,sheet.ncols):
 			 value = TransformationType(sheet.cell_value(i,j))
-			 # print  value 
-			 key = TransformationType(sheet.cell_value(0,j)) 
+			 #print type(value)
 			 if  isinstance(value , str):
 				
-				 if isJsonString(value):
-				 	# 可以转化成 json 对象的 					
-					data[key] = eval(value)
+				 if isJsonString(value):					
+					data[TransformationType(sheet.cell_value(0,j))] = eval(value)
 				 else:
-				 	# str 值
-					data[key] = value
+					data[TransformationType(sheet.cell_value(0,j))] = value
 			 else:
-			 	 # 非str 值
-				 data[key] = value
-		# 转换成 python 字典 对象			
-		adict[TransformationType(sheet.cell_value(i,0))]= data
+			 	 # print TransformationType(sheet.cell_value(0,j))
+				 data[TransformationType(sheet.cell_value(0,j))] = value
+					
+		# adict[TransformationType(sheet.cell_value(i,0))]= data
+		mlist.append(data)
+		# adict[""+name+"config"] = mlist
+		adict = mlist;
 
 	data = json.dumps(adict,sort_keys=True,indent=1,ensure_ascii=False)
 	ssdata = re.sub(r'\[','{',data,flags=re.M)
 	ccdata = re.sub(r']','}',ssdata,flags=re.M)
-	leftData = re.sub(r'^ *"',' ["',ccdata,flags=re.M)
-	rightdata = re.sub(r':',']=',leftData,flags=re.M)
+	# leftData = re.sub(r'^ *"',' ["',ccdata,flags=re.M)
+	# rightdata = re.sub(r':',']=',leftData,flags=re.M)
+	rightdata = re.sub(r'(")(\w+)(":)','["'+r'\2'+'"]=',ccdata,flags=re.M)
+
+
 	# print rightdata
 	# 添加lua 头
 	# \"total_amount\":\""+ price+"\"
-	modestr = " module(\"" +  name +"\")"+"\n"
+	
 	localStr = "local " + name + "tab =" + "\n"
+	returnstr = "return " + name+"tab"
 	f=open(name+'.lua','w') 
-	f.write(modestr+localStr+rightdata)
+	f.write(localStr + rightdata +  "\n" + returnstr)
 	f.close()
 	print "already create  lua :  " + path
 
@@ -119,13 +145,12 @@ def readExeclToJson(path,name):
 		mlist.append(data)
 		adict[""+name+"config"] = mlist
 	
-	 
 	data = json.dumps(adict,sort_keys=True,indent=1,ensure_ascii=False)
 	f=open(name+'.json','w') 
 	f.write(data)
 	f.close()
 	print "already create  json :  " + path
-	
+	# [{"size":20,"text":"1.用牌","color":"255,255,0"},{"size":20, "text":"湖南麻将中使用的牌为万字、筒字与条字各36张，共10张","color":"255,255,0"}]
 	
 def isJsonString(str):
 	try:
