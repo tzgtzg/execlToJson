@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import sys
+reload(sys)
+sys.setdefaultencoding('utf8')
 import os
 #import os.path
 import json
@@ -10,6 +12,7 @@ import math
 import types
 import glob
 import re
+
 from optparse import OptionParser
 
 fileTypeArray = [".xlsx",".xls"]
@@ -30,70 +33,66 @@ def readAllExecl(_type):
 						readExeclToJson(localPath,filename.split('.')[0])
 					elif _type == "lua":
 						readExeclToLua(localPath,filename.split('.')[0])
-						
-			#print  localPath
-		#print "dir  " + dir
-def readExeclToLua(path,name):
+					elif _type == "js":
+						readExeclToJs(localPath,filename.split('.')[0])
+
+def ExeclToJson(path,name):
 	workbook  = xlrd.open_workbook(path)
-	
-	sheet2_name = workbook.sheet_names()[0]
-	sheet=workbook.sheet_by_name(sheet2_name)   # sheet索引从0开始
-	# sheet的名称，行数，列数
-	#print sheet.name,sheet.nrows,sheet.ncols
-	
-	# adict = {}
-	
-	# for i in range(1,sheet.nrows):
-	# 	data = {}
-	# 	#print TransformationType(sheet.cell_value(0,0))
-	# 	for j in range(0,sheet.ncols):
-	# 		 value = TransformationType(sheet.cell_value(i,j))
-	# 		 # print  value 
-	# 		 key = TransformationType(sheet.cell_value(0,j)) 
-	# 		 if  isinstance(value , str):
-				
-	# 			 if isJsonString(value):
-	# 			 	# 可以转化成 json 对象的 					
-	# 				data[key] = eval(value)
-	# 			 else:
-	# 			 	# str 值
-	# 				data[key] = value
-	# 		 else:
-	# 		 	 # 非str 值
-	# 			 data[key] = value
-	# 	# 转换成 python 字典 对象			
-	# 	adict[TransformationType(sheet.cell_value(i,0))]= data
+	# [u'sheet1', u'sheet2']
+	#print workbook.sheet_names() 
 	adict = {}
-	mlist =[]
-	for i in range(1,sheet.nrows):
-		data = {}
-		#print TransformationType(sheet.cell_value(0,0))
-		for j in range(0,sheet.ncols):
-			 value = TransformationType(sheet.cell_value(i,j))
-			 #print type(value)
-			 if  isinstance(value , str):
-				
-				 if isJsonString(value):					
-					data[TransformationType(sheet.cell_value(0,j))] = eval(value)
-				 else:
-					data[TransformationType(sheet.cell_value(0,j))] = value
-			 else:
-			 	 # print TransformationType(sheet.cell_value(0,j))
-				 data[TransformationType(sheet.cell_value(0,j))] = value
+	
+	for k in workbook.sheet_names():
+		sheet=workbook.sheet_by_name(k)   # sheet索引从0开始
+		# sheet的名称，行数，列数
+		#print sheet.name,sheet.nrows,sheet.ncols
+	 	mlist =[]
+ 		adict[k] = {}
+		for i in range(1,sheet.nrows):
+			data = {}
+			#print TransformationType(sheet.cell_value(0,0))
+			for j in range(0,sheet.ncols):
+				 value = TransformationType(sheet.cell_value(i,j))
+				 #print type(value)
+				 if  isinstance(value , str):
 					
-		# adict[TransformationType(sheet.cell_value(i,0))]= data
-		mlist.append(data)
-		# adict[""+name+"config"] = mlist
-		adict = mlist;
+					 if isJsonString(value):					
+						data[TransformationType(sheet.cell_value(0,j))] = eval(value)
+					 else:
+						data[TransformationType(sheet.cell_value(0,j))] = value
+				 else:
+				 	 # print TransformationType(sheet.cell_value(0,j))
+					 data[TransformationType(sheet.cell_value(0,j))] = value
+						
+			# adict[TransformationType(sheet.cell_value(i,0))]= data
+			# mlist.append(data)
+			
+			# adict[""+k] = mlist
+			adict[""+k][TransformationType(sheet.cell_value(i,0))] = data
 
+	
 	data = json.dumps(adict,sort_keys=True,indent=1,ensure_ascii=False)
-	ssdata = re.sub(r'\[','{',data,flags=re.M)
-	ccdata = re.sub(r']','}',ssdata,flags=re.M)
-	# leftData = re.sub(r'^ *"',' ["',ccdata,flags=re.M)
-	# rightdata = re.sub(r':',']=',leftData,flags=re.M)
-	rightdata = re.sub(r'(")(\w+)(":)','["'+r'\2'+'"]=',ccdata,flags=re.M)
+	return data
+
+def readExeclToJs(path,name):
+	data = ExeclToJson(path,name)
+	moduleStr = "module.exports = " 
+	newData = moduleStr + data
+	f=open(name+'.js','w') 
+	f.write(newData)
+	f.close()
+	print "already create  js :  " + path
+
+def readExeclToLua(path,name):
+	
+	data = ExeclToJson(path,name)
 
 
+	 # 转换成  数组 格式 时  打开 注释 
+	# ssdata = re.sub(r'\[','{',data,flags=re.M)
+	# ccdata = re.sub(r']','}',ssdata,flags=re.M)
+	rightdata = re.sub(r'(")(\w+)(":)','["'+r'\2'+'"]=',data,flags=re.M) 
+	
 	# print rightdata
 	# 添加lua 头
 	# \"total_amount\":\""+ price+"\"
@@ -106,46 +105,8 @@ def readExeclToLua(path,name):
 	print "already create  lua :  " + path
 
 
-
-	
-	
-
-	
-
-
 def readExeclToJson(path,name):
-	workbook  = xlrd.open_workbook(path)
-	# [u'sheet1', u'sheet2']
-	#print workbook.sheet_names() 
-	
-	sheet2_name = workbook.sheet_names()[0]
-	sheet=workbook.sheet_by_name(sheet2_name)   # sheet索引从0开始
-	# sheet的名称，行数，列数
-	#print sheet.name,sheet.nrows,sheet.ncols
-	
-	adict = {}
-	mlist =[]
-	for i in range(1,sheet.nrows):
-		data = {}
-		#print TransformationType(sheet.cell_value(0,0))
-		for j in range(0,sheet.ncols):
-			 value = TransformationType(sheet.cell_value(i,j))
-			 #print type(value)
-			 if  isinstance(value , str):
-				
-				 if isJsonString(value):					
-					data[TransformationType(sheet.cell_value(0,j))] = eval(value)
-				 else:
-					data[TransformationType(sheet.cell_value(0,j))] = value
-			 else:
-			 	 # print TransformationType(sheet.cell_value(0,j))
-				 data[TransformationType(sheet.cell_value(0,j))] = value
-					
-		# adict[TransformationType(sheet.cell_value(i,0))]= data
-		mlist.append(data)
-		adict[""+name+"config"] = mlist
-	
-	data = json.dumps(adict,sort_keys=True,indent=1,ensure_ascii=False)
+	data = ExeclToJson(path,name)
 	f=open(name+'.json','w') 
 	f.write(data)
 	f.close()
@@ -162,6 +123,7 @@ def isJsonString(str):
 def TransformationType(var):
 	#print  type(var)
 	if isinstance(var ,float) : #type(var) == 'float':
+		# print("var  ", var)
 		str1 = int(var)
 	elif isinstance(var, unicode): #type(var) == 'unicode':
 		 str1 = var.encode("utf-8")
@@ -186,12 +148,12 @@ def main():
 	parser = OptionParser(usage="")
 	parser.add_option("-l","--language",action="store",
 	dest="languages",
-	help="-l,  -- lua    to lua  table    --json  to json")
+	help="-l,  -- lua    to lua  table file    --json  to json  --js  to js file")
 
 	(options,args) = parser.parse_args()
 	#print options.languages
 	#print args
-	if options.languages == "lua" or options.languages == "json" :
+	if options.languages == "lua" or options.languages == "json" or options.languages == "js":
 		readAllExecl(options.languages)
 	print "create  all success : " 
 	os.system("pause")
