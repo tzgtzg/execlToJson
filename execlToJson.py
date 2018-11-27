@@ -124,7 +124,10 @@ def TransformationType(var):
 	#print  type(var)
 	if isinstance(var ,float) : #type(var) == 'float':
 		# print("var  ", var)
-		str1 = int(var)
+		if var == int(var) : 
+			str1 = int(var)
+		else:
+			str1 = round(var,2)
 	elif isinstance(var, unicode): #type(var) == 'unicode':
 		 str1 = var.encode("utf-8")
 	else:
