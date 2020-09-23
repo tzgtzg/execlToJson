@@ -48,7 +48,10 @@ def ExeclToJson(path,name):
 		#print sheet.name,sheet.nrows,sheet.ncols
 	 	mlist =[]
  		adict[k] = {}
-		for i in range(1,sheet.nrows):
+
+ 		reservedNum = 1;   #  预留 行数  第一行  预留填备注
+		# for i in range(1,sheet.nrows):     第一行  预留填备注
+		for i in range(1 + reservedNum,sheet.nrows):  
 			data = {}
 			#print TransformationType(sheet.cell_value(0,0))
 			for j in range(0,sheet.ncols):
@@ -57,12 +60,12 @@ def ExeclToJson(path,name):
 				 if  isinstance(value , str):
 					
 					 if isJsonString(value):					
-						data[TransformationType(sheet.cell_value(0,j))] = eval(value)
+						data[TransformationType(sheet.cell_value(0+reservedNum,j))] = eval(value)
 					 else:
-						data[TransformationType(sheet.cell_value(0,j))] = value
+						data[TransformationType(sheet.cell_value(0+reservedNum,j))] = value
 				 else:
 				 	 # print TransformationType(sheet.cell_value(0,j))
-					 data[TransformationType(sheet.cell_value(0,j))] = value
+					 data[TransformationType(sheet.cell_value(0+reservedNum,j))] = value
 						
 			# adict[TransformationType(sheet.cell_value(i,0))]= data
 			# mlist.append(data)
